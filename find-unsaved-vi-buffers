@@ -1,0 +1,63 @@
+#! /usr/bin/env bash
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4 smartindent nu
+
+# find unsaved vim buffers in a git repo
+
+set -e
+
+declare -i debug=0
+declare -i all=0
+declare -a modfiles=()
+
+function help() {
+        echo ""
+        echo "Usage:"
+        echo " $(basename $0) [-d] [-a]"
+        echo "   -a   consider all directories"
+        echo "        by default we will just look into directories containing changed or cached files"
+        echo "   -d   debug script"
+}
+
+function find_modified_swp() {
+    cd "$1"
+    vim -r 2>&1 | grep -B 1 "modified: YES" | sed '1!d;s/^\s*file name: //g'
+    cd ~-
+}
+
+function get_dirs_to_check() {
+    if [ $all -gt 0 ]; then
+        git ls-files | xargs -n 1 dirname | sort | uniq
+    else
+        git st  --porcelain | sed '/^[M ][M ] /!d' | awk '{print $2}' | xargs -n 1 dirname | sort | uniq
+    fi
+}
+
+while getopts h?da opt; do
+        case $opt in
+                h|\?)
+                        help
+                        exit 0
+                        ;;
+                d)
+                        debug=1
+                        ;;
+                a)
+                        all=1
+                        ;;
+        esac
+done
+
+if [ $debug -gt 0 ]; then
+    set -x
+fi
+
+for d in $(get_dirs_to_check); do
+    while read l; do
+        modfiles+=($l);
+    done < <(find_modified_swp "$d")
+done
+
+if [ ${#modfiles[*]} -gt 0 ]; then
+    echo -e "files with a unsaved vi buffer:\n${modfiles[*]}"
+fi
+exit ${#modfiles[*]}
