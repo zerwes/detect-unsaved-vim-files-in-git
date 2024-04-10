@@ -1,0 +1,8 @@
+# use with pre-commit
+# see https://pre-commit.com
+
+- id: unsaved-vim-files
+  name: Detect Unsaved Vim Files
+  description: detect unsaved vim buffers
+  entry: find-unsaved-vi-buffers
+  language: script
