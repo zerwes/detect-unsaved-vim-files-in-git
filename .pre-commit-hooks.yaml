@@ -6,3 +6,4 @@
   description: detect unsaved vim buffers
   entry: find-unsaved-vi-buffers
   language: script
+  fail_fast: true
