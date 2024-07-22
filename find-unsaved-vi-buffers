@@ -20,7 +20,7 @@ function help() {
 
 function find_modified_swp() {
     cd "$1"
-    vim -r 2>&1 | grep -B 1 "modified: YES" | sed '1!d;s/^\s*file name: //g'
+    vim -r 2>&1 | sed '/ In directory /,$d' | grep -B 1 "modified: YES" | sed '1!d;s/^\s*file name: //g'
     cd ~-
 }
 
